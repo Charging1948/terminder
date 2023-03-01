@@ -1,16 +1,29 @@
 #include <stdio.h>
-#include <time.h>
+#include <string.h>
+#include "../include/functions.h"
+#include "../include/utility.h"
 
-#include "../include/appointment.h"
-#include "../include/list.h"
+int main(int argc, char* argv[]) {
+  const char *filename = "termine.txt";
+  //print welcome message
+  entry();
 
-List createList(){
+  if (argc > 1) {
+    filename = argv[1];
+    printf("Using file %s for appointments", filename);
+  }
+  // read appointments from file
+  List list = parseFile(filename);
 
-}
+  // insert dummy entries for testing with today's date
+  time_t ct = time(NULL);
+  struct tm *ctm = localtime(&ct);
+  insertElement(list, ct, "test1");
+  printFullList(list);
+  menu(list);
 
-int main() {
-    printf("Hello there!\n");
-
-    printf("\n");
-    return 0;
+  // save appointments to file "filename" before exiting
+  saveList(list, filename);
+  goodbye();
+  return 0;
 }

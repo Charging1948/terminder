@@ -1,0 +1,29 @@
+@document.meta
+  title: terminder
+  description: CLI-Application for managing Appointments
+  authors: JK
+  created: 2022-01-23
+  version: 0.0.1
+@end
+
+@code norg
+= ToC Table of Contents
+@end
+
+@code lua
+print("Hello World!")
+@end
+
+* Hello World
+  In this one i will talk about stuff.
+  @embed image
+  https://github.com/vhyrro/neorg/blob/main/res/neorg.svg
+  @end
+
+  @math
+  f(x) = x^2 + 3x - 4
+  @end
+
+* Hello Second World
+  In this one i will talk about other stuff.
+

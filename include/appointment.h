@@ -9,7 +9,7 @@
 typedef struct
 {
     time_t start;
-    char *description;
+    const char *description;
 } Appointment;
 
 #endif //TERMINDER_APPOINTMENT_H
