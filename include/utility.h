@@ -10,7 +10,9 @@
 #include "stdio.h"
 
 time_t readDate();
-int charToInt(char);
+char *readString();
 void printOptions();
+void clearBuffer();
+char *dateToString(time_t);
 
 #endif //TERMINDER_UTILITY_H

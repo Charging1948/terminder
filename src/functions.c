@@ -30,8 +30,7 @@ void clearList(List list) {
         current = current->next;
         free(old);
     }
-    free(list.head);
-    free(list.tail);
+    list.head->next = list.tail;
 }
 
 void insertElement(List list, time_t start, const char *text) {
@@ -59,45 +58,45 @@ Element *findElement(List list, const char *text) {
     Element *current = list.head->next;
     while (current->next != current) {
         const char *desc = current->appointment->description;
-        if (strncmp(desc, text, sizeof((char *)desc)) == 0)
+        if (strcmp(desc, text) == 0)
             return current;
         current = current->next;
     }
     return NULL;
 }
 
-
 bool deleteElement(List list, const char *text) {
-    Element *current = list.head->next;
-    while (current->next != current) {
-        const char *desc = current->appointment->description;
+    bool result = false;
+    Element *current = list.head;
+    while (current->next != current->next->next) {
+        const char *desc = current->next->appointment->description;
         if (strncmp(desc, text, sizeof((char *)desc)) == 0) {
-            Element *old = current;
-            current = current->next;
+            Element *old = current->next;
+            current->next = old->next;
             free(old);
-            return true;
+            result = true;
         }
         current = current->next;
     }
-    return false;
+    return result;
 }
 
 void printAppointment(Appointment *appointment) {
     printf("--------------------------------------\n");
     printf("Appointment: %s\n", appointment->description);
-    printf("Fällig am: %s", asctime(localtime(&appointment->start)));
+    printf("Faellig am: %s\n", dateToString(appointment->start));
     printf("--------------------------------------\n");
 }
 
 void printList(List list, int day, int month, int year) {
+    bool ignoreDate = day == 0 && month == 0 && year == 0;
     struct Element *ptr = list.head->next;
     bool found = false;
 
-    // start from the beginning
     while (ptr != ptr->next) {
         struct tm *start = localtime(&ptr->appointment->start);
-        if (start->tm_mday == day && start->tm_mon == month &&
-            start->tm_year == year) {
+        if ((start->tm_mday == day && start->tm_mon == month &&
+            start->tm_year == year) || ignoreDate) {
             printAppointment(ptr->appointment);
             found = true;
         }
@@ -107,13 +106,7 @@ void printList(List list, int day, int month, int year) {
 }
 
 void printFullList(List list) {
-    struct Element *ptr = list.head->next;
-
-    // start from the beginning
-    while (ptr != ptr->next) {
-        printAppointment(ptr->appointment);
-        ptr = ptr->next;
-    }
+    printList(list, 0,0,0);
 }
 
 List parseFile(const char *filename) {
@@ -121,19 +114,22 @@ List parseFile(const char *filename) {
     FILE *file = fopen(filename, "r");
     List list = createList();
     if (file == NULL) {
-        printf("File %s not found. Creating new file.\n", filename);
+        printf("Datei '%s' nicht gefunden. Neue Liste wird erstellt.\n", filename);
         return list;
     }
+    printf("Datei '%s' wird zum Speichern benutzt.\n", filename);
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
     while ((read = getline(&line, &len, file)) != -1) {
         char *token = strtok(line, "|");
-        char *description = malloc(sizeof(char) * strlen(token));
-        strcpy(description, token);
+        char *description = token;
         token = strtok(NULL, ";");
         time_t start = (time_t) strtol(token, NULL, 10);
-        insertElement(list, start, description);
+
+        if (difftime(start, time(NULL)) >= 0)
+            insertElement(list, start, description);
+//        free(description);
     }
     fclose(file);
     return list;
@@ -142,13 +138,13 @@ List parseFile(const char *filename) {
 void saveList(List list, const char *filename) {
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
-        printf("Fehler beim Öffnen der Datei %s", filename);
+        printf("Fehler beim Oeffnen der Datei '%s'!\n", filename);
         exit(1);
     }
     Element *current = list.head->next;
     while (current->next != current) {
         fprintf(file, "%s|", current->appointment->description);
-        fprintf(file, "%ld;", current->appointment->start);
+        fprintf(file, "%ld;\n", current->appointment->start);
         current = current->next;
     }
     fclose(file);
@@ -159,35 +155,77 @@ void entry() {
 }
 
 void menu(List main_list) {
-    int input;
     int option = 0;
     while(true) {
+        int input;
         printOptions();
 
         if (scanf("%d", &input) == 1 && input >= 1 && input <= 8) {
             option = input;
+            clearBuffer();
         } else {
-            printf("Ungültige Eingabe!\n");
+            clearBuffer();
+            printf("Ungueltige Eingabe!\n");
+            sleep(1);
+            continue;
         }
 
         time_t ct = time(NULL);
         struct tm *ctm = localtime(&ct);
+        char *input_str = NULL;
+        time_t date_time;
         switch (option) {
             case 1:
                 printList(main_list, ctm->tm_mday, ctm->tm_mon, ctm->tm_year);
                 break;
             case 2:
-                time_t date_time = readDate();
+                date_time = readDate();
                 struct tm *date_tm = localtime(&date_time);
                 printList(main_list, date_tm->tm_mday, date_tm->tm_mon,
                           date_tm->tm_year);
                 break;
+            case 3:
+                printFullList(main_list);
+                break;
+            case 4:
+                printf("Neuer Termin:\n");
+                input_str = readString();
+                time_t start = readDate();
+                insertElement(main_list, start, input_str);
+                break;
+            case 5:
+                printf("Termin suchen:\n");
+                input_str = readString();
+                Element *element = findElement(main_list, input_str);
+                if (element != NULL) {
+                    printAppointment(element->appointment);
+                } else {
+                    printf("Termin nicht gefunden!\n");
+                }
+                break;
+            case 6:
+                printf("Termin loeschen:\n");
+                input_str = readString();
+                if (deleteElement(main_list, input_str)) {
+                    printf("Termin geloescht!\n");
+                } else {
+                    printf("Termin nicht gefunden!\n");
+                }
+                break;
+            case 7:
+                clearList(main_list);
+                printf("Liste geloescht!\n");
+                break;
             case 8:
-                printf("\n");
+                // aus Schleife austreten, Programm beenden
                 return;
         }
     }
 }
-void goodbye() {
-    printf("See you soon!\n");
+void goodbye(List list) {
+    clearList(list);
+    free(list.head);
+    free(list.tail);
+
+    printf("Bis bald!\n");
 }

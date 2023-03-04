@@ -23,6 +23,6 @@ List parseFile(const char *);
 void saveList(List, const char *);
 void entry(void);
 void menu(List);
-void goodbye(void);
+void goodbye(List);
 
 #endif //TERMINDER_FUNCTIONS_H

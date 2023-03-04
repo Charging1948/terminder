@@ -10,20 +10,24 @@ int main(int argc, char* argv[]) {
 
   if (argc > 1) {
     filename = argv[1];
-    printf("Using file %s for appointments", filename);
+    printf("Datei '%s' wird zum speichern benutzt.", filename);
   }
   // read appointments from file
   List list = parseFile(filename);
 
-  // insert dummy entries for testing with today's date
   time_t ct = time(NULL);
   struct tm *ctm = localtime(&ct);
-  insertElement(list, ct, "test1");
-  printFullList(list);
+
+  // print appointments for today
+  printList(list, ctm->tm_mday, ctm->tm_mon, ctm->tm_year);
+
+  // print menu
   menu(list);
 
   // save appointments to file "filename" before exiting
   saveList(list, filename);
-  goodbye();
+
+  // free memory and exit
+  goodbye(list);
   return 0;
 }
