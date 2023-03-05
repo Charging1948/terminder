@@ -151,7 +151,7 @@ void saveList(List list, const char *filename) {
 }
 
 void entry() {
-    printf("Terminder - Version 0.1\n");
+    printf("Terminder - Version 1.0\n");
 }
 
 void menu(List main_list) {
