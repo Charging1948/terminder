@@ -15,10 +15,9 @@ int main(int argc, char* argv[]) {
   // read appointments from file
   List list = parseFile(filename);
 
+  // print appointments for today
   time_t ct = time(NULL);
   struct tm *ctm = localtime(&ct);
-
-  // print appointments for today
   printList(list, ctm->tm_mday, ctm->tm_mon, ctm->tm_year);
 
   // print menu

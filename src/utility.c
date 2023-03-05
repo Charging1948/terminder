@@ -4,7 +4,28 @@
 #include <time.h>
 #include <stdlib.h>
 
+time_t getResetTime() {
+    time_t current_time;
+    struct tm *time_info;
 
+    time(&current_time);
+    time_info = gmtime(&current_time);
+
+    // Set time fields to 0
+    time_info->tm_hour = 0;
+    time_info->tm_min = 0;
+    time_info->tm_sec = 0;
+
+    // Convert back to time_t
+    return mktime(time_info);
+}
+
+struct tm *getLocalTime() {
+    time_t time;
+    return localtime(&time);
+}
+
+//Reads date input from command line
 time_t readDate() {
     printf("Bitte geben Sie das Datum im Format TT.MM.JJJJ ein: ");
     char input[11];
@@ -40,6 +61,7 @@ time_t readDate() {
     return result;
 }
 
+//Read String from command line
 char *readString() {
 
     // read string from stdin
@@ -56,6 +78,7 @@ char *readString() {
     return input_str;
 }
 
+// Print menu with options
 void printOptions() {
     printf(" ------------------------------------------------------ \n");
     printf("| Bitte waehlen Sie eine der folgenden Funktionen aus: |\n");

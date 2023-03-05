@@ -1,8 +1,6 @@
-//
-// Created by jk on 12/15/22.
-//
 #ifndef TERMINDER_UTILITY_H
 #define TERMINDER_UTILITY_H
+
 #include <stdbool.h> 
 #include <time.h>
 #include <stdarg.h>
@@ -14,5 +12,7 @@ char *readString();
 void printOptions();
 void clearBuffer();
 char *dateToString(time_t);
+time_t getResetTime(void);
+struct tm *getLocalTime(void);
 
 #endif //TERMINDER_UTILITY_H
